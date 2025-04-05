@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-10">
+    <div class="max-w-4xl mx-auto">
+      <!-- Search Input -->
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Wonach suchen Sie?"
+        class="w-full px-4 py-2 rounded-xl shadow focus:outline-none focus:ring mt-4"
+      />
+
+      <!-- Container for product and category results side by side -->
+      <div
+        class="mt-8 flex flex-col md:flex-row md:space-y-0 space-y-8"
+        id="results-container"
+      >
+        <!-- Product Results Section -->
+        <div
+          id="product-results"
+          class="w-full md:w-1/2 md:border-r-2 border-gray-300"
+        >
+          <!-- Product results will be displayed here -->
+        </div>
+
+        <!-- Category Results Section -->
+        <div id="category-results" class="w-full md:w-1/2">
+          <!-- Category results will be displayed here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const input = document.getElementById("search-input");
+      const productResultsDiv = document.getElementById("product-results");
+      const categoryResultsDiv = document.getElementById("category-results");
+      const resultsContainer = document.getElementById("results-container");
+
+      input.addEventListener("input", async () => {
+        const q = input.value;
+
+        if (q.length < 1) {
+          // If the input is empty, hide the results and clear the content
+          productResultsDiv.innerHTML = "";
+          categoryResultsDiv.innerHTML = "";
+          return;
+        }
+
+        // Fetch the results from the server
+        const res = await fetch(`/api/search/?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+
+        // Show the results container
+
+        // Clear previous results
+        productResultsDiv.innerHTML = "";
+        categoryResultsDiv.innerHTML = "";
+
+        // Show the results of the product search
+        if (data.product_results.length > 0) {
+          productResultsDiv.innerHTML += `
+            <h2 class="bg-gray-300 font-semibold text-md mb-1">PRODUKTE</h2>
+          `;
+          data.product_results.forEach((item) => {
+            productResultsDiv.innerHTML += `
+              <div class="bg-white p-1 flex flex-col items-center mb-1">
+                <div class="w-full">
+                  <div class="font-semibold truncate">${item.name}</div>
+                </div>
+              <div class="flex justify-between items-center w-full mt-1">
+                   <div class="flex-1 text-gray-600 text-sm">in ${
+                     item.category
+                   }</div>
+                    <div class="text-sm text-blue-600">€${item.price.toFixed(
+                      2
+                    )}</div>
+              </div>
+              </div>
+            `;
+          });
+        }
+
+        // Show the results of the category search
+        if (data.category_results.length > 0) {
+          categoryResultsDiv.innerHTML += `
+            <h2 class="bg-gray-300 font-semibold text-md mb-1 pl-2">KATEGORIEN</h2>
+          `;
+          data.category_results.forEach((item) => {
+            categoryResultsDiv.innerHTML += `
+              <div class="bg-white p-1 items-center mb-1 min-h-[56px] pl-2">
+                <div class="font-semibold ">${item.category}</div>
+              </div>
+            `;
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
